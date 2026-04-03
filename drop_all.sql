@@ -1,0 +1,49 @@
+USE grab;
+
+-- 1. Drop many-to-many relationship and multivalued attribute tables
+DROP TABLE IF EXISTS ACCOUNT_COMMUNICATION;
+-- [cite: 1355]
+DROP TABLE IF EXISTS TRIP_DISCOUNT;
+-- [cite: 1354]
+DROP TABLE IF EXISTS VEHICLE_CATEGORIZATION;
+-- [cite: 1353]
+DROP TABLE IF EXISTS ACCOUNT_NOTIFICATION;
+-- [cite: 1352]
+
+-- 2. Drop tables representing specialization subclasses and weak entities
+DROP TABLE IF EXISTS SAVED_LOCATION;
+-- [cite: 1350]
+DROP TABLE IF EXISTS TRANSACTION;
+-- [cite: 1348]
+DROP TABLE IF EXISTS COMPLETED_TRIP;
+-- [cite: 1346]
+DROP TABLE IF EXISTS CANCELLED_TRIP;
+-- [cite: 1345]
+DROP TABLE IF EXISTS ASSIGNED_TRIP;
+-- [cite: 1344]
+
+-- 3. Drop tables for primary entities and recursive relationships
+DROP TABLE IF EXISTS TRIP;
+-- [cite: 1343]
+DROP TABLE IF EXISTS VEHICLE;
+-- [cite: 1342]
+DROP TABLE IF EXISTS BANK_ACCOUNT;
+-- [cite: 1341]
+DROP TABLE IF EXISTS PAYMENT_METHOD;
+-- [cite: 1340]
+DROP TABLE IF EXISTS REFERRAL;
+-- [cite: 1351]
+DROP TABLE IF EXISTS DRIVER;
+-- [cite: 1338]
+DROP TABLE IF EXISTS PASSENGER;
+-- [cite: 1337]
+
+-- 4. Drop base independent entities and configuration tables
+DROP TABLE IF EXISTS NOTIFICATION;
+-- [cite: 1339]
+DROP TABLE IF EXISTS TRANSPORT_MODE;
+-- [cite: 1347]
+DROP TABLE IF EXISTS DISCOUNT;
+-- [cite: 1349]
+DROP TABLE IF EXISTS ACCOUNT;
+-- [cite: 1336]
