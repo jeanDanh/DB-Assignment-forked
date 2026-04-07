@@ -92,12 +92,12 @@ INSERT INTO VEHICLE
 -- bảng ko có foreign
 INSERT INTO TRANSPORT_MODE 
 (TYPE, SEAT_CAPACITY, SERVICE_LEVEL) VALUES 
-(1,'Bike', 1, 'Standard'),
-(2,'Bike', 1, 'Saver'),
-(3,'Car', 4, 'Standard'),
-(4,'Car', 4, 'Saver'),
-(5,'Car', 4, 'Electric'),
-(6,'Car', 6, 'Standard');
+('Bike', 1, 'Standard'),
+('Bike', 1, 'Saver'),
+('Car', 4, 'Standard'),
+('Car', 4, 'Saver'),
+('Car', 4, 'Electric'),
+('Car', 6, 'Standard');
 
 INSERT INTO VEHICLE_CATEGORIZATION
 (VEHICLE_ID, MODE_ID) VALUES
