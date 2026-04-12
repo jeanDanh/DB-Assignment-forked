@@ -365,4 +365,32 @@ BEGIN
     END IF;
 END//
 
+-- Prevent a notification from losing its last account association
+CREATE TRIGGER PREVENT_LAST_ACCOUNT_NOTIFICATION_DELETE
+BEFORE DELETE ON ACCOUNT_NOTIFICATION
+FOR EACH ROW
+BEGIN
+    DECLARE notification_count INT;
+    SELECT COUNT(*) INTO notification_count FROM ACCOUNT_NOTIFICATION WHERE NOTIFICATION_ID = OLD.NOTIFICATION_ID;
+
+    IF notification_count <= 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Total Participation Violated: A notification must be sent to at least one account.';
+    END IF;
+END//
+
+-- Prevent a vehicle from losing its last categorization
+CREATE TRIGGER PREVENT_LAST_VEHICLE_CATEGORIZATION_DELETE
+BEFORE DELETE ON VEHICLE_CATEGORIZATION
+FOR EACH ROW
+BEGIN
+    DECLARE mode_count INT;
+    SELECT COUNT(*) INTO mode_count FROM VEHICLE_CATEGORIZATION WHERE VEHICLE_ID = OLD.VEHICLE_ID;
+
+    IF mode_count <= 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Total Participation Violated: A vehicle must be categorized into at least one trasnport mode.';
+    END IF;
+END//
+
 DELIMITER;
