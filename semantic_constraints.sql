@@ -24,7 +24,7 @@ BEGIN
 
     CASE
         WHEN old_status = 'PENDING' THEN
-            IF NEW.STATUS <> 'ASSIGNED' OR NEW.STATUS <> 'CANCELLED' THEN
+            IF NEW.STATUS <> 'ASSIGNED' AND NEW.STATUS <> 'CANCELLED' THEN
                 SET is_valid = FALSE;
             END IF;
         WHEN old_status = 'ASSIGNED' THEN
