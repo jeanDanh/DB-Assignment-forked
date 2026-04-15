@@ -1,6 +1,5 @@
 -- Active: 1775061495821@@127.0.0.1@3306@grab
 CREATE SCHEMA IF NOT EXISTS GRAB;
-
 USE GRAB;
 
 -- User management
