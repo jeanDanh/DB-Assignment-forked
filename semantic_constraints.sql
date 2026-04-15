@@ -1,9 +1,7 @@
 USE GRAB;
-
 DELIMITER //
 
 -- constraint 9
-
 CREATE TRIGGER TRIP_STATUS_ORDER
 BEFORE UPDATE ON TRIP
 FOR EACH ROW
@@ -67,11 +65,81 @@ BEGIN
     SET T_ID = NEW.TRIP_ID;
     SELECT FINAL_PRICE INTO trip_final_price FROM TRIP WHERE TRIP.TRIP_ID = T_ID;
 
-    SET trip_final_price = final_price DIV 2000;
+    SET trip_final_price = trip_final_price DIV 2000;
 
     UPDATE COMPLETED_TRIP
     SET OBTAINED_GRABCOIN = trip_final_price
     WHERE TRIP_ID = T_ID;
     
 END//
-DELIMITER;
+
+-- Constraint 5: Exact Fare Payment Matching
+CREATE TRIGGER FARE_PAYMENT_MATCHING
+BEFORE INSERT ON PAYMENT_TRANSACTION
+FOR EACH ROW
+BEGIN
+    DECLARE v_final_price INT;
+    DECLARE error VARCHAR(1000);
+
+    SELECT FINAL_PRICE INTO v_final_price
+    FROM TRIP
+    WHERE TRIP_ID = NEW.TRIP_ID;
+
+    SET error = CONCAT('Semantic constraint violated: PAYMENT_AMOUNT must equal FINAL_PRICE.', NEW.TRIP_ID);
+    IF NEW.PAYMENT_AMOUNT <> v_final_price THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = error;
+        -- SET MESSAGE_TEXT = 'Semantic constraint violated: PAYMENT_AMOUNT must equal FINAL_PRICE.';
+    END IF;
+END//
+
+-- Constraint 6: Single Ongoing Trip per Driver
+CREATE TRIGGER DRIVER_ONGOING_CHECK
+BEFORE INSERT ON ASSIGNED_TRIP
+FOR EACH ROW
+BEGIN
+    DECLARE v_ongoing_count INT;
+    DECLARE error VARCHAR(1000);
+
+    SELECT COUNT(*) INTO v_ongoing_count
+    FROM ASSIGNED_TRIP assign
+    JOIN TRIP trip ON assign.TRIP_ID = trip.TRIP_ID
+    WHERE assign.DRIVER_ID = NEW.DRIVER_ID
+        AND trip.STATUS = 'ONGOING';
+
+    SET error = CONCAT('Semantic constraint violated: Driver ', NEW.DRIVER_ID,' already has an ongoing trip');
+    IF v_ongoing_count >= 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = error;
+    END IF;
+END//
+
+-- Constraint 7: Single Ongoing Trip per Passenger
+CREATE TRIGGER PASSENGER_ONGOING_CHECK
+BEFORE INSERT ON ASSIGNED_TRIP
+FOR EACH ROW
+BEGIN
+    DECLARE v_ongoing_count INT;
+    DECLARE v_passenger_id INT;
+    DECLARE error VARCHAR(1000);
+
+    SELECT PASSENGER_ID INTO v_passenger_id
+    FROM TRIP
+    WHERE TRIP_ID = NEW.TRIP_ID;
+
+    SELECT COUNT(*) INTO v_ongoing_count
+    FROM ASSIGNED_TRIP at
+    JOIN TRIP t ON at.TRIP_ID = t.TRIP_ID
+    WHERE t.PASSENGER_ID = v_passenger_id
+      AND t.STATUS = 'ONGOING';
+
+
+    SET error = CONCAT(
+    'Semantic constraint violated: Passenger ', v_passenger_id,
+    ' already in an ongoing trip');
+    IF v_ongoing_count >= 1 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = error;
+    END IF;
+END//
+DELIMITER ;

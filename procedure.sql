@@ -1,41 +1,82 @@
-DELIMITER $$
+DELIMITER //
 
-CREATE PROCEDURE INSERT_VEHICLE_CHECK_PLATE (
+
+-- p_mode_ids_list: vehicle category for this vehicle. for exapmle: command-separated '1,2', respectively standard bike and saver bike
+-- p- prefix stands for 'parameter'
+CREATE PROCEDURE INSERT_VEHICLE (
     IN p_plate_number VARCHAR(20),
     IN p_make VARCHAR(20),
     IN p_model VARCHAR(20),
     IN p_color VARCHAR(10),
     IN p_capacity INT,
     IN p_registrant_id INT,
-    IN p_using_driver_id INT
+    IN p_using_driver_id INT,
+    IN p_mode_ids_list TEXT --
 )
 BEGIN
-    -- Check plate format
+    DECLARE v_vehicle_id INT;
+    DECLARE v_mode_id_str VARCHAR(255);
+    DECLARE v_pos INT DEFAULT 1;
+
+    -- PLATE NUMBER validation
     IF p_plate_number NOT REGEXP '^[0-9]{2}[A-Z]{1,3}-[0-9]{3}\\.[0-9]{2}$' THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid plate number format';
+        SET MESSAGE_TEXT = 'Invalid plate number. The format must be: [2 digits][1 to 3 capital letters][-][3 digits][.][2 digits]';
     END IF;
 
-    -- Insert
+    -- Insert into VEHICLE
     INSERT INTO VEHICLE (
-        PLATE_NUMBER,
-        MAKE,
-        MODEL,
-        COLOR,
-        CAPACITY,
-        REGISTRANT_ID,
-        USING_DRIVER_ID
+        PLATE_NUMBER, MAKE, MODEL, COLOR,
+        CAPACITY, REGISTRANT_ID, USING_DRIVER_ID
     )
     VALUES (
-        p_plate_number,
-        p_make,
-        p_model,
-        p_color,
-        p_capacity,
-        p_registrant_id,
-        p_using_driver_id
+        p_plate_number, p_make, p_model, p_color,
+        p_capacity, p_registrant_id, p_using_driver_id
     );
 
-END$$
+    -- Insert into VEHICLE_CATEGORIZATION
+    SET v_vehicle_id = LAST_INSERT_ID();
+    WHILE CHAR_LENGTH(p_mode_ids_list) > 0 AND v_pos > 0 DO
+        SET v_pos = LOCATE(',', p_mode_ids_list);
+
+        IF v_pos > 0 THEN
+            SET v_mode_id_str = LEFT(p_mode_ids_list, v_pos - 1);
+            SET p_mode_ids_list = SUBSTRING(p_mode_ids_list, v_pos + 1);
+        ELSE
+            SET v_mode_id_str = p_mode_ids_list;
+            SET p_mode_ids_list = '';
+        END IF;
+
+        IF v_mode_id_str <> '' THEN
+            INSERT INTO VEHICLE_CATEGORIZATION (VEHICLE_ID, MODE_ID)
+            VALUES (v_vehicle_id, CAST(v_mode_id_str AS UNSIGNED));
+        END IF;
+    END WHILE;
+END //
+
+CREATE PROCEDURE SWITCH_VEHICLE(
+    IN p_registrant_id INT,
+    IN p_vehicle_id INT
+)
+BEGIN
+    -- Nullify all vehicles of this registrant
+    UPDATE VEHICLE
+    SET USING_DRIVER_ID = NULL
+    WHERE REGISTRANT_ID = p_registrant_id;
+
+    -- Set the chosen vehicle
+    UPDATE VEHICLE
+    SET USING_DRIVER_ID = p_registrant_id
+    WHERE VEHICLE_ID = p_vehicle_id
+      AND REGISTRANT_ID = p_registrant_id;
+END //
+
+CREATE PROCEDURE DELETE_VEHICLE(
+    IN p_vehicle_id INT
+)
+BEGIN
+    DELETE FROM VEHICLE
+    WHERE VEHICLE_ID = p_vehicle_id;
+END //
 
 DELIMITER ;
