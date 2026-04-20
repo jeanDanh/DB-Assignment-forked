@@ -1,15 +1,15 @@
 -- Active: 1775061495821@@127.0.0.1@3306@grab
 -- Function 1: GrabCoins bonus for passengers
--- A function that calculates a special end-of-month "GrabCoin" loyalty bonus for a passenger. 
--- Instead of a flat earn rate, the rewards are dynamic. 
--- The function evaluates each trip row-by-row, granting bonus multipliers 
--- based on the luxury level of the ride and 
+-- A function that calculates a special end-of-month "GrabCoin" loyalty bonus for a passenger.
+-- Instead of a flat earn rate, the rewards are dynamic.
+-- The function evaluates each trip row-by-row, granting bonus multipliers
+-- based on the luxury level of the ride and
 -- the passenger's engagement (whether they left a rating).
 USE GRAB;
 
--- DROP FUNCTION `GRAB_COIN_BONUS`;
+DROP FUNCTION `GRAB_COIN_BONUS`;
 
-DELIMITER //
+DELIMITER / /
 
 CREATE FUNCTION GRAB_COIN_BONUS(
     P_PASSENGER_ID INT,
@@ -37,7 +37,7 @@ BEGIN
 
     -- Declare cursor
     DECLARE TRIP_CURSOR CURSOR FOR
-        SELECT T.OBTAINED_GRABCOIN, M.SERVICE_LEVEL, C.RATING_STARS,
+        SELECT C.OBTAINED_GRABCOIN, M.SERVICE_LEVEL, C.RATING_STARS,
                 HOUR(T.BOOKING_TIME), TX.PAID_BY_CASH
         FROM TRIP T
         JOIN COMPLETED_TRIP C ON T.TRIP_ID = C.TRIP_ID
@@ -63,6 +63,8 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Passenger does not exist';
     END IF;
+
+    OPEN TRIP_CURSOR;
 
     REWARD_LOOP: LOOP
         FETCH TRIP_CURSOR INTO V_BASE_COINS, V_SERVICE_LEVEL, V_RATING_STARS, V_BOOKING_HOUR, V_PAID_BY_CASH;
@@ -103,21 +105,19 @@ BEGIN
     
     END LOOP;
 
-    
     CLOSE TRIP_CURSOR;
         
     RETURN V_TOTAL_EXTRA_COINS;
 
 END//
 
-DELIMITER ;
-
+DELIMITER;
 
 -- Function 2: Driver Bonus Calculation
 -- A function that calculates a monthly bonus for drivers based on their completed trips.
 -- The bonus is influenced by multiple factors, including the average rating of their trips,
 -- the type of vehicle they used, and whether they completed any trips during peak hours.
-DELIMITER //
+DELIMITER / /
 
 CREATE FUNCTION CALCULATE_DRIVER_BONUS_FEE(
     p_driver_id INT,
@@ -189,4 +189,4 @@ BEGIN
     RETURN v_total_bonus;
 END //
 
-DELIMITER ;
+DELIMITER;
