@@ -1,10 +1,10 @@
--- Active: 1775981929461@@localhost@3306@GRAB
+-- Active: 1775061495821@@127.0.0.1@3306@grab
 USE GRAB;
 
 INSERT INTO USER_ACCOUNT
 (NAME, PHONE_NUMBER, EMAIL, ACCOUNT_PASSWORD, GENDER, AVATAR) VALUES
 ('Đặng Quí', '0474213546', 'dangqui@example.com', 'dangqui', 'Male', NULL),
-('Vương Anh Tuấn', '036988860', 'vuonganhtuan@example.com', 'vuonganhtuan', 'Male', NULL),
+('Vương Anh Tuấn', '0369888601', 'vuonganhtuan@example.com', 'vuonganhtuan', 'Male', NULL),
 ('Lạc Toàn Quân', '0119094843', 'lactoanquan@example.com', 'lactoanquan', 'Male', NULL),
 ('Chu Minh Thức', '0276301993', 'chuminhthuc@example.com', 'chuminhthuc', 'Male', NULL),
 ('Phan Ngọc Giác', '0257991897', 'phanngocgiac@example.com', 'phanngocgiac', 'Male', NULL),
@@ -110,16 +110,16 @@ INSERT INTO BANK_ACCOUNT
 -- Làm gì có chuyện một trip driver dùng hai ba vehicle, phân thân ra à? Bởi vậy nó mới unique đấy.
 INSERT INTO VEHICLE
 (PLATE_NUMBER,MAKE,MODEL,COLOR,CAPACITY,REGISTRANT_ID,USING_DRIVER_ID) VALUES
-('52E-556.83','Ford','EcoSport','Bạc',6,8,NULL),   #tài số 8 ko xài xe hơi này hôm nay
-('57A-987.55','Mitsubishi','Xpander','Bạc',6,8,8), #tài số 8 xài xe hơi này hôm nay
-('51Y-501.65','Toyota','Fortuner','Bạc',6,8,NULL), #tài số 8 ko xài xe hơi này hôm nay
-('57HA-092.11','Honda Moto','Future Neo','Xanh lam',1,6,NULL),  #tài số 6 ko xài xe này hôm nay
-('51UHB-538.39','Honda Moto','Wave 110','Xanh lam',1,6,6), #tài số 6 xài xe này hôm nay
-('51II-780.77','Honda Moto','Wave Alpha','Xanh lam',1,7,7), #tài số 7 xài xe này hôm nay
-('54OS-179.36','Honda Moto','Winner X 150','Xanh lam',1,7,NULL),  #tài số 7 ko xài xe này hôm nay
-('59E-976.72','Honda Moto','CBR500R','Xanh lam',1,9,9), #tài số 9 xài xe này hôm nay
-('50GNX-323.43','Honda Moto','CBR650R','Xanh lam',1,9,NULL), #tài số 9 ko xài xe này hôm nay
-('55JB-155.65','Honda Moto','CBR650R','Xanh lam',1,10,10); #tài số 10 đang chạy xe này
+('52E-556.83','Ford','EcoSport','Bạc',7,8,NULL),   #tài số 8 ko xài xe hơi này hôm nay
+('57A-987.55','Mitsubishi','Xpander','Bạc',7,8,8), #tài số 8 xài xe hơi này hôm nay
+('51Y-501.65','Toyota','Fortuner','Bạc',7,8,NULL), #tài số 8 ko xài xe hơi này hôm nay
+('57HA-092.11','Honda Moto','Future Neo','Xanh lam',2,6,NULL),  #tài số 6 ko xài xe này hôm nay
+('51UHB-538.39','Honda Moto','Wave 110','Xanh lam',2,6,6), #tài số 6 xài xe này hôm nay
+('51II-780.77','Honda Moto','Wave Alpha','Xanh lam',2,7,7), #tài số 7 xài xe này hôm nay
+('54OS-179.36','Honda Moto','Winner X 150','Xanh lam',2,7,NULL),  #tài số 7 ko xài xe này hôm nay
+('59E-976.72','Honda Moto','CBR500R','Xanh lam',2,9,9), #tài số 9 xài xe này hôm nay
+('50GNX-323.43','Honda Moto','CBR650R','Xanh lam',2,9,NULL), #tài số 9 ko xài xe này hôm nay
+('55JB-155.65','Honda Moto','CBR650R','Xanh lam',2,10,10); #tài số 10 đang chạy xe này
 
 INSERT INTO TRANSPORT_MODE
 (TYPE, SEAT_CAPACITY, SERVICE_LEVEL) VALUES

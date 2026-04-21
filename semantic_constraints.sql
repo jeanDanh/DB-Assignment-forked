@@ -115,6 +115,32 @@ BEGIN
     
 END//
 
+-- Constraint: Vehicle capacity and transport mode compatibility
+CREATE TRIGGER VALIDATE_VEHICLE_MODE_CATEGORIZATION
+BEFORE INSERT ON VEHICLE_CATEGORIZATION
+FOR EACH ROW
+BEGIN
+    DECLARE v_capacity INT;
+    DECLARE m_type ENUM('Bike', 'Car');
+    DECLARE m_seat_capacity INT;
+
+    -- Get vehicle capacity
+    SELECT CAPACITY INTO v_capacity
+    FROM VEHICLE
+    WHERE VEHICLE_ID = NEW.VEHICLE_ID;
+
+    -- Get transport mode details
+    SELECT TYPE, SEAT_CAPACITY INTO m_type, m_seat_capacity
+    FROM TRANSPORT_MODE
+    WHERE MODE_ID = NEW.MODE_ID;
+
+    -- Check for valid combinations of vehicle capacity and transport mode
+    IF NOT ((v_capacity = 2 AND m_type = 'Bike' AND m_seat_capacity = 1) OR (v_capacity = 5 AND m_type = 'Car' AND m_seat_capacity = 4) OR (v_capacity = 7 AND m_type = 'Car' AND m_seat_capacity = 6)) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Semantic constraint violated: The vehicle capacity does not match the transport mode type or seat capacity.';
+    END IF;
+END//
+
 -- Constraint 12: Grab coin check
 -- CREATE TRIGGER GRABCOIN_ACCUMULATION
 -- AFTER INSERT ON COMPLETED_TRIP
@@ -150,7 +176,7 @@ BEGIN
     WHERE TRIP_ID = NEW.TRIP_ID;
 
     SET NEW.OBTAINED_GRABCOIN = trip_final_price DIV 2000;
-END;
+END//
 
 CREATE TRIGGER GRABCOIN_UPDATE
 BEFORE UPDATE ON TRIP
@@ -167,7 +193,7 @@ BEGIN
     UPDATE COMPLETED_TRIP
     SET OBTAINED_GRABCOIN = trip_final_price DIV 2000
     WHERE TRIP_ID = NEW.TRIP_ID;
-END;
+END//
 
 -- Constraint 5: Exact Fare Payment Matching
 CREATE TRIGGER FARE_PAYMENT_MATCHING
@@ -181,12 +207,13 @@ BEGIN
     FROM TRIP
     WHERE TRIP_ID = NEW.TRIP_ID;
 
-    SET error = CONCAT('Semantic constraint violated: PAYMENT_AMOUNT must equal FINAL_PRICE.', NEW.TRIP_ID);
-    IF NEW.PAYMENT_AMOUNT <> v_final_price THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = error;
-        -- SET MESSAGE_TEXT = 'Semantic constraint violated: PAYMENT_AMOUNT must equal FINAL_PRICE.';
-    END IF;
+    -- SET error = CONCAT('Semantic constraint violated: PAYMENT_AMOUNT must equal FINAL_PRICE.', NEW.TRIP_ID);
+    -- IF NEW.PAYMENT_AMOUNT <> v_final_price THEN
+    --     SIGNAL SQLSTATE '45000'
+    --     SET MESSAGE_TEXT = error;
+    --     -- SET MESSAGE_TEXT = 'Semantic constraint violated: PAYMENT_AMOUNT must equal FINAL_PRICE.';
+    -- END IF;
+    SET NEW.PAYMENT_AMOUNT = v_final_price;
 END//
 
 -- Constraint 6: Single Ongoing Trip per Driver

@@ -1,6 +1,4 @@
--- Active: 1775981929461@@localhost@3306@GRAB
-DELIMITER //
-
+DELIMITER / /
 
 -- p_mode_ids_list: vehicle category for this vehicle. for exapmle: command-separated '1,2', respectively standard bike and saver bike
 -- p- prefix stands for 'parameter'
@@ -83,7 +81,7 @@ BEGIN
     WHERE VEHICLE_ID = p_vehicle_id;
 END //
 
--- Procedure 1: Lấy danh sách Vehicle của Driver 
+-- Procedure 1: Lấy danh sách Vehicle của Driver
 
 CREATE PROCEDURE GET_DRIVER_VEHICLE_LIST(
     IN p_driver_id INT,             -- Required: ID của tài xế
@@ -122,10 +120,10 @@ BEGIN
         V.VEHICLE_ID ASC;
 END //
 
-DELIMITER ;
+DELIMITER;
 
 -- Procedure 2: Báo cáo số lượng chuyến đi đã hoàn thành theo tháng trong khoảng thời gian nhất định
-DELIMITER //
+DELIMITER / /
 
 CREATE PROCEDURE GET_PASSENGER_MONTHLY_REPORT(
     IN p_passenger_id INT,
@@ -146,4 +144,48 @@ BEGIN
     ORDER BY Month ASC;
 END //
 
-DELIMITER ;
+DELIMITER;
+
+-- Procedure 3: Passenger Trip History
+-- A complex user-facing query that retrieves a detailed, paginated history of a passenger's trips,
+-- joining across multiple tables to include driver, vehicle, and feedback details.
+DELIMITER / /
+
+CREATE PROCEDURE GET_PASSENGER_TRIP_HISTORY(
+    IN p_passenger_id INT,
+    IN p_limit INT,
+    IN p_offset INT
+)
+BEGIN
+    -- Input validation for pagination
+    IF p_limit IS NULL OR p_limit <= 0 THEN
+        SET p_limit = 10;
+    END IF;
+    IF p_offset IS NULL OR p_offset < 0 THEN
+        SET p_offset = 0;
+    END IF;
+
+    SELECT 
+        T.TRIP_ID,
+        T.STATUS,
+        T.BOOKING_TIME,
+        T.FROM_ADDRESS,
+        T.TO_ADDRESS,
+        T.FINAL_PRICE,
+        T.USED_GRABCOINS,
+        TM.TYPE AS Vehicle_Type,
+        TM.SERVICE_LEVEL,
+        U.NAME AS Driver_Name,
+        CT.RATING_STARS,
+        CT.FEEDBACK
+    FROM TRIP T
+    JOIN TRANSPORT_MODE TM ON T.MODE_ID = TM.MODE_ID
+    LEFT JOIN ASSIGNED_TRIP AT ON T.TRIP_ID = AT.TRIP_ID
+    LEFT JOIN USER_ACCOUNT U ON AT.DRIVER_ID = U.ACCOUNT_ID
+    LEFT JOIN COMPLETED_TRIP CT ON T.TRIP_ID = CT.TRIP_ID
+    WHERE T.PASSENGER_ID = p_passenger_id
+    ORDER BY T.BOOKING_TIME DESC
+    LIMIT p_limit OFFSET p_offset;
+END //
+
+DELIMITER;

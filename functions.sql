@@ -132,10 +132,7 @@ BEGIN
     DECLARE v_has_payment INT;
     DECLARE done INT DEFAULT FALSE;
 
-    -- 1. Input Validation
-    IF p_month < 1 OR p_month > 12 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid month input.';
-    END IF;
+    
 
     -- 2. Cursor to fetch details for each trip
     DECLARE trip_cursor CURSOR FOR 
@@ -150,6 +147,11 @@ BEGIN
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
+    -- 1. Input Validation
+    IF p_month < 1 OR p_month > 12 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid month input.';
+    END IF;
+    
     OPEN trip_cursor;
 
     -- 3. Loop through data
