@@ -400,39 +400,84 @@ BEGIN
 END//
 
 -- Constraint 9: Final price
+DELIMITER //
 
-CREATE TRIGGER VALIDATE_FINAL_PRICE_CALCULATION
+CREATE PROCEDURE REFRESH_TRIP_FINAL_PRICE(IN p_trip_id INT)
+BEGIN
+    DECLARE v_total_p DECIMAL(10,4);
+    DECLARE v_total_a INT;
+    DECLARE v_est_price INT;
+    DECLARE v_coins INT;
+
+    -- Fetch base trip data
+    SELECT ESTIMATED_PRICE, USED_GRABCOINS 
+    INTO v_est_price, v_coins 
+    FROM TRIP WHERE TRIP_ID = p_trip_id;
+
+    -- Aggregate all linked discounts (Handling the M:N relationship)
+    SELECT COALESCE(SUM(PERCENTAGE_DISCOUNT), 0), COALESCE(SUM(AMOUNT_DISCOUNT), 0)
+    INTO v_total_p, v_total_a
+    FROM TRIP_DISCOUNT TD
+    JOIN DISCOUNT D ON TD.DISCOUNT_ID = D.DISCOUNT_ID
+    WHERE TD.TRIP_ID = p_trip_id;
+
+    -- Apply the Formula: Max( Estimated * (1 - ΣPi) - ΣAj - (Coins/150 * 5000), 0 )
+    UPDATE TRIP 
+    SET FINAL_PRICE = ROUND(GREATEST ((v_est_price * (1 - v_total_p)) - v_total_a - ((v_coins / 150.0) * 5000), 0) / 1000) * 1000
+    WHERE TRIP_ID = p_trip_id;
+END //
+
+
+CREATE TRIGGER INITIALIZE_TRIP_PRICE
 BEFORE INSERT ON TRIP
 FOR EACH ROW
 BEGIN
-    DECLARE total_percentage DECIMAL(10, 4) DEFAULT 0.0;
-    DECLARE total_amount_discount INT DEFAULT 0;
-    DECLARE grabcoin_discount_value DECIMAL(10, 2) DEFAULT 0.0;
-    DECLARE calculated_final_price INT DEFAULT 0;
-    
-    SELECT 
-        COALESCE(SUM(D.PERCENTAGE_DISCOUNT), 0), 
-        COALESCE(SUM(D.AMOUNT_DISCOUNT), 0)
-    INTO total_percentage, total_amount_discount
-    FROM TRIP_DISCOUNT TD
-    JOIN DISCOUNT D ON TD.DISCOUNT_ID = D.DISCOUNT_ID
-    WHERE TD.TRIP_ID = NEW.TRIP_ID;
+    -- Initial price calculation (Estimated - GrabCoins)
+    SET NEW.FINAL_PRICE = ROUND(GREATEST(NEW.ESTIMATED_PRICE - ((NEW.USED_GRABCOINS / 150.0) * 5000), 0) / 1000) * 1000;
+END //
 
-    SET grabcoin_discount_value = (NEW.USED_GRABCOINS / 150.0) * 5000;
 
-    SET calculated_final_price = ROUND(
-        NEW.ESTIMATED_PRICE * (1 - total_percentage) 
-        - total_amount_discount 
-        - grabcoin_discount_value
-    );
-    IF calculated_final_price < 0 THEN
-        SET calculated_final_price = 0;
-    END IF;
-
-    IF NEW.FINAL_PRICE <> calculated_final_price THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Semantic constraint violated: Final_price calculation is incorrect';
-    END IF;
+CREATE TRIGGER RECALCULATE_PRICE_ON_DISCOUNT_LINK
+AFTER INSERT ON TRIP_DISCOUNT
+FOR EACH ROW
+BEGIN
+    -- Call the combined function to update the stored derived attribute
+    CALL REFRESH_TRIP_FINAL_PRICE(NEW.TRIP_ID);
 END //
 
 DELIMITER ;
+-- CREATE TRIGGER VALIDATE_FINAL_PRICE_CALCULATION
+-- BEFORE INSERT ON TRIP
+-- FOR EACH ROW
+-- BEGIN
+--     DECLARE total_percentage DECIMAL(10, 4) DEFAULT 0.0;
+--     DECLARE total_amount_discount INT DEFAULT 0;
+--     DECLARE grabcoin_discount_value DECIMAL(10, 2) DEFAULT 0.0;
+--     DECLARE calculated_final_price INT DEFAULT 0;
+    
+--     SELECT 
+--         COALESCE(SUM(D.PERCENTAGE_DISCOUNT), 0), 
+--         COALESCE(SUM(D.AMOUNT_DISCOUNT), 0)
+--     INTO total_percentage, total_amount_discount
+--     FROM TRIP_DISCOUNT TD
+--     JOIN DISCOUNT D ON TD.DISCOUNT_ID = D.DISCOUNT_ID
+--     WHERE TD.TRIP_ID = NEW.TRIP_ID;
+
+--     SET grabcoin_discount_value = (NEW.USED_GRABCOINS / 150.0) * 5000;
+
+--     SET calculated_final_price = ROUND(
+--         NEW.ESTIMATED_PRICE * (1 - total_percentage) 
+--         - total_amount_discount 
+--         - grabcoin_discount_value
+--     );
+--     IF calculated_final_price < 0 THEN
+--         SET calculated_final_price = 0;
+--     END IF;
+
+--     IF NEW.FINAL_PRICE <> calculated_final_price THEN
+--         SIGNAL SQLSTATE '45000'
+--         SET MESSAGE_TEXT = 'Semantic constraint violated: Final_price calculation is incorrect';
+--     END IF;
+-- END //
+
+-- DELIMITER ;
