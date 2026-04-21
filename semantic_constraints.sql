@@ -116,27 +116,58 @@ BEGIN
 END//
 
 -- Constraint 12: Grab coin check
+-- CREATE TRIGGER GRABCOIN_ACCUMULATION
+-- AFTER INSERT ON COMPLETED_TRIP
+-- FOR EACH ROW 
+-- BEGIN
+--     DECLARE trip_final_price INT;
+--     DECLARE obtained_coins INT;
+--     DECLARE T_ID INT;
+--     SET T_ID = NEW.TRIP_ID;
+--     SELECT FINAL_PRICE INTO trip_final_price FROM TRIP WHERE TRIP.TRIP_ID = T_ID;
+
+--     SET obtained_coins = trip_final_price DIV 2000;
+
+--     UPDATE COMPLETED_TRIP
+--     SET OBTAINED_GRABCOIN = trip_final_price
+--     WHERE TRIP_ID = T_ID;
+
+--     -- IF NEW.OBTAINED_GRABCOIN <> obtained_coins THEN
+--     --     SIGNAL SQLSTATE '45000'
+--     --     SET MESSAGE_TEXT = 'Semantic constraint violated: Incorrect calculation for Obtained_Grabcoin';
+--     -- END IF;
+-- END//
+
 CREATE TRIGGER GRABCOIN_ACCUMULATION
 BEFORE INSERT ON COMPLETED_TRIP
 FOR EACH ROW 
 BEGIN
     DECLARE trip_final_price INT;
-    DECLARE obtained_coins INT;
-    DECLARE T_ID INT;
-    SET T_ID = NEW.TRIP_ID;
-    SELECT FINAL_PRICE INTO trip_final_price FROM TRIP WHERE TRIP.TRIP_ID = T_ID;
 
-    SET obtained_coins = trip_final_price DIV 2000;
+    SELECT FINAL_PRICE 
+    INTO trip_final_price 
+    FROM TRIP 
+    WHERE TRIP_ID = NEW.TRIP_ID;
 
-    -- UPDATE COMPLETED_TRIP
-    -- SET OBTAINED_GRABCOIN = trip_final_price
-    -- WHERE TRIP_ID = T_ID;
+    SET NEW.OBTAINED_GRABCOIN = trip_final_price DIV 2000;
+END;
 
-    IF NEW.OBTAINED_GRABCOIN <> obtained_coins THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Semantic constraint violated: Incorrect calculation for Obtained_Grabcoin';
-    END IF;
-END//
+CREATE TRIGGER GRABCOIN_UPDATE
+BEFORE UPDATE ON TRIP
+FOR EACH ROW
+BEGIN
+    DECLARE trip_final_price INT;
+
+    SELECT FINAL_PRICE 
+    INTO trip_final_price 
+    FROM TRIP 
+    WHERE TRIP_ID = NEW.TRIP_ID;
+
+    -- SET NEW.OBTAINED_GRABCOIN = trip_final_price DIV 2000;
+    UPDATE COMPLETED_TRIP
+    SET OBTAINED_GRABCOIN = trip_final_price DIV 2000
+    WHERE TRIP_ID = NEW.TRIP_ID;
+END;
 
 -- Constraint 5: Exact Fare Payment Matching
 CREATE TRIGGER FARE_PAYMENT_MATCHING
@@ -207,7 +238,6 @@ BEGIN
         SET MESSAGE_TEXT = error;
     END IF;
 END//
-DELIMITER ;
 
 -- Constraint 2 & 3: Discount validity and usage limit
 CREATE TRIGGER TRIP_DISCOUNT_BEFORE_INSERT
@@ -369,9 +399,7 @@ BEGIN
     END IF;
 END//
 
-DELIMITER;
 -- Constraint 9: Final price
-DELIMITER //
 
 CREATE TRIGGER VALIDATE_FINAL_PRICE_CALCULATION
 BEFORE INSERT ON TRIP

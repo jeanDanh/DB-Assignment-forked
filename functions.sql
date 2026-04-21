@@ -7,9 +7,7 @@
 -- the passenger's engagement (whether they left a rating).
 USE GRAB;
 
-DROP FUNCTION `GRAB_COIN_BONUS`;
-
-DELIMITER / /
+DELIMITER //
 
 CREATE FUNCTION GRAB_COIN_BONUS(
     P_PASSENGER_ID INT,
@@ -189,4 +187,4 @@ BEGIN
     RETURN v_total_bonus;
 END //
 
-DELIMITER;
+DELIMITER ;

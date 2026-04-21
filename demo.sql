@@ -4,8 +4,8 @@
 
 USE GRAB;
 
+SELECT OBTAINED_GRABCOIN, FINAL_PRICE FROM COMPLETED_TRIP CT JOIN TRIP T ON CT.TRIP_ID = T.TRIP_ID;
 
-------------------------------------------------PROCEDURES---------------------------------------------------------
 -- Test procedure 1
 --  Xem xe của Tài xế 8
 CALL GET_DRIVER_VEHICLE_LIST(8, NULL, NULL, 'CAPACITY_DESC');
@@ -46,7 +46,6 @@ SELECT 'Results for 3-month lookback (Expected: 1 trip in Feb):' AS Sub_Test;
 CALL GET_PASSENGER_MONTHLY_REPORT(2, 3);
 
 
-------------------------------------------------FUNCTIONS---------------------------------------------------------
 -- Test function 1: GRAB_COIN_BONUS
 -- Calculates end-of-month loyalty bonus coins for a passenger.
 

@@ -159,31 +159,31 @@ PASSENGER_ID, MODE_ID, BOOKING_TYPE, REQUEST_TIME) VALUES
 (
  'Sân bay Tân Sơn Nhất, Phường 2, Tân Bình, HCM', 10.818927, 106.665444,
  '268 Đ. Lý Thường Kiệt, Phường Diên Hồng, HCM', 10.772011, 106.657882,
- '2026-01-03 08:10:00', 'COMPLETED',  NULL, 42000, 0, 29400,
+ '2026-01-03 08:10:00', 'COMPLETED',  NULL, 42000, 0, 42000,
  1, 6, 'Standard', NULL),
 
 (
  'Khu phố Tân Lập, Phường Đông Hòa, TP.HCM', 10.880458, 106.805564,
  'Bến xe Miền Đông, Bình Thạnh, HCM', 10.814300, 106.714500,
- '2026-04-01 14:30:00', 'COMPLETED', NULL, 100000, 0, 85000,
+ '2026-04-01 14:30:00', 'COMPLETED', NULL, 100000, 0, 100000,
  3, 1, 'Standard', NULL),
 
 (
  '1 Đ. Lữ Gia, Phường 15, Phú Thọ, HCM', 10.769086, 106.658159,
  'Chợ Bến Thành, Phường Bến Thành, Quận 1, HCM', 10.772300, 106.698200,
- '2026-02-10 09:45:00', 'COMPLETED', NULL, 35000, 0, 25000,
+ '2026-02-10 09:45:00', 'COMPLETED', NULL, 35000, 0, 35000,
  5, 1, 'Standard', NULL),
 
 (
  '268 Đ. Lý Thường Kiệt, Phường Diên Hồng, HCM', 10.772011, 106.657882,
  'Landmark 81, Vinhomes Central Park, Bình Thạnh, HCM', 10.794700, 106.722100,
- '2026-02-14 10:00:00', 'COMPLETED', NULL, 55000, 0, 25000,
+ '2026-02-14 10:00:00', 'COMPLETED', NULL, 55000, 0, 55000,
  4, 6, 'Standard', NULL),
 
 (
  '268 Đ. Lý Thường Kiệt, Phường Diên Hồng, HCM', 10.772807, 106.658603,
  '10-12 Đinh Tiên Hoàng, Sài gòn', 10.785892, 106.702513,
- '2026-02-20 07:30:00', 'COMPLETED', NULL, 40000, 0, 32000,
+ '2026-02-20 07:30:00', 'COMPLETED', NULL, 40000, 0, 40000,
  2, 1, 'Standard', NULL),
 
 (
@@ -285,11 +285,11 @@ INSERT INTO ASSIGNED_TRIP
 
 INSERT INTO COMPLETED_TRIP
 (TRIP_ID,TO_TIME,OBTAINED_GRABCOIN,RATING_STARS,FEEDBACK,DRIVER_PAY) VALUES
-(1,'2026-01-03 08:30:00',14,5,'Chuyển đi 5 sao',29400),#discount: percentage 0.3
-(2,'2026-04-01 15:03:00',42,5,'Chuyển đi 5 sao',85000),#discount: percentage 0.15
-(3,'2026-02-10 10:04:00',12,5,'Chuyển đi 5 sao',25000),#discount: amount 10k
-(4,'2026-02-14 17:29:00',22,5,'Chuyển đi 5 sao',25000),#discount: amount 30k
-(5,'2026-02-20 07:55:00',20,5,'Chuyển đi 5 sao',32000),#discount: percentage 0.2
+(1,'2026-01-03 08:30:00',21,5,'Chuyển đi 5 sao',42000),#discount: percentage 0.3
+(2,'2026-04-01 15:03:00',50,5,'Chuyển đi 5 sao',100000),#discount: percentage 0.15
+(3,'2026-02-10 10:04:00',17,5,'Chuyển đi 5 sao',35000),#discount: amount 10k
+(4,'2026-02-14 17:29:00',27,5,'Chuyển đi 5 sao',55000),#discount: amount 30k
+(5,'2026-02-20 07:55:00',20,5,'Chuyển đi 5 sao',40000),#discount: percentage 0.2
 (6,'2026-03-01 20:22:00',20,5,'Chuyển đi 5 sao',40000),
 (7,'2026-03-10 06:11:00',30,5,'Chuyển đi 5 sao',60000);
 
@@ -303,11 +303,11 @@ INSERT INTO PAYMENT_METHOD
 
 INSERT INTO PAYMENT_TRANSACTION
 (PAYMENT_AMOUNT, DATE_TIME, PAID_BY_CASH, TIP, TRIP_ID, PAYMENT_METHOD_ID) VALUES
-(29400,'2026-01-03 08:32:00',TRUE,0,1,NULL),
-(85000,'2026-04-01 15:05:00',FALSE,0,2,1),  
-(25000,'2026-04-01 15:03:00',FALSE,0,3,3),  
-(25000,'2026-02-14 17:29:00',FALSE,0,4,4), 
-(32000,'2026-02-20 07:57:00',FALSE,0,5,5), 
+(42000,'2026-01-03 08:32:00',TRUE,0,1,NULL),
+(100000,'2026-04-01 15:05:00',FALSE,0,2,1),  
+(35000,'2026-04-01 15:03:00',FALSE,0,3,3),  
+(55000,'2026-02-14 17:29:00',FALSE,0,4,4), 
+(40000,'2026-02-20 07:57:00',FALSE,0,5,5), 
 (40000,'2026-03-01 20:24:00',TRUE,0,6,NULL),
 (60000,'2026-03-10 06:13:00',TRUE,0,7,NULL);
 
