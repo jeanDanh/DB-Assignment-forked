@@ -302,7 +302,7 @@ BEGIN
     FROM ASSIGNED_TRIP assign
     JOIN TRIP trip ON assign.TRIP_ID = trip.TRIP_ID
     WHERE assign.DRIVER_ID = NEW.DRIVER_ID
-        AND trip.STATUS = 'ONGOING';
+        AND trip.STATUS IN ('ASSIGNED', 'DRIVER_ARRIVED', 'ONGOING');
 
     SET error = CONCAT('Semantic constraint violated: Driver ', NEW.DRIVER_ID,' already has an ongoing trip');
     IF v_ongoing_count >= 1 THEN
@@ -317,10 +317,10 @@ BEFORE UPDATE ON TRIP
 FOR EACH ROW
 BEGIN
     DECLARE other_active_trip INT DEFAULT 0;
-    IF NEW.STATUS = 'ONGOING' THEN
+    IF NEW.STATUS IN ('ASSIGNED', 'DRIVER_ARRIVED', 'ONGOING') THEN
         SELECT COUNT(*) INTO other_active_trip FROM TRIP
         WHERE TRIP.PASSENGER_ID = NEW.PASSENGER_ID
-            AND TRIP.STATUS = 'ONGOING'
+            AND TRIP.STATUS IN ('ASSIGNED', 'DRIVER_ARRIVED', 'ONGOING')
             AND TRIP.TRIP_ID <> NEW.TRIP_ID;
 
         IF other_active_trip > 0 THEN
@@ -346,7 +346,7 @@ BEGIN
     FROM ASSIGNED_TRIP at
     JOIN TRIP t ON at.TRIP_ID = t.TRIP_ID
     WHERE t.PASSENGER_ID = v_passenger_id
-      AND t.STATUS = 'ONGOING';
+      AND t.STATUS IN ('ASSIGNED', 'DRIVER_ARRIVED', 'ONGOING');
 
 
     SET error = CONCAT(
