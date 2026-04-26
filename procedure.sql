@@ -208,6 +208,8 @@ BEGIN
         C.TO_TIME >= DATE_SUB(LAST_DAY(CURRENT_DATE), INTERVAL p_months_back MONTH) 
     GROUP BY 
         Reporting_Month
+    HAVING
+        Total_Trips > 0
     ORDER BY 
         Reporting_Month DESC;
 END //
