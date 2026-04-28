@@ -111,16 +111,27 @@ END//
 
 CREATE PROCEDURE GET_DRIVER_VEHICLE_LIST(
     IN p_driver_id INT,             -- Required: ID của tài xế
-    IN p_mode_type VARCHAR(20),     -- Optional: 'Bike'/ 'Car' (NULL: tất cả)
-    IN p_min_capacity INT,          -- Optional: Sức chứa tối thiểu (NULL: tất cả)
-    IN p_sort_option VARCHAR(20)    -- Required: 'CAPACITY_DESC'/ 'CAPACITY_ASC'/ 'MAKE'
+    IN p_service_level VARCHAR(20), -- Optional: 'Standard'/ 'Saver'/ 'Electric' (NULL: tất cả)
+    IN p_capacity INT,              -- Optional: Sức chứa chính xác (2/5/7, NULL: tất cả)
+    IN p_sort_option VARCHAR(20),   -- Required: 'CAPACITY_DESC'/ 'CAPACITY_ASC'/ 'MAKE'
+    IN p_plate_number VARCHAR(20),  -- Optional: Biển số xe (NULL: tất cả)
+    IN p_limit INT,                 -- Optional: Số lượng bản ghi mỗi trang (default: 10)
+    IN p_offset INT                 -- Optional: Vị trí bắt đầu (default: 0)
 )
 BEGIN
-    SELECT 
-        V.VEHICLE_ID, V.PLATE_NUMBER, V.MAKE, V.MODEL, V.CAPACITY,
+    -- Input validation for pagination
+    IF p_limit IS NULL OR p_limit <= 0 THEN
+        SET p_limit = 10;
+    END IF;
+    IF p_offset IS NULL OR p_offset < 0 THEN
+        SET p_offset = 0;
+    END IF;
 
-        -- Trường hợp nhiều mode (VD: "Bike, Car")
-        GROUP_CONCAT(TM.TYPE SEPARATOR ', ') AS MODE,
+    SELECT 
+        V.VEHICLE_ID, V.PLATE_NUMBER, V.MAKE, V.MODEL, V.CAPACITY, V.COLOR,
+
+        -- Trường hợp nhiều mode (VD: "Standard, Saver")
+        GROUP_CONCAT(TM.SERVICE_LEVEL SEPARATOR ', ') AS SERVICE_TYPE,
         
         CASE 
             WHEN V.USING_DRIVER_ID = p_driver_id THEN 'ACTIVE'
@@ -133,8 +144,9 @@ BEGIN
     
     WHERE 
         V.REGISTRANT_ID = p_driver_id
-        AND (p_mode_type IS NULL OR TM.TYPE = p_mode_type)
-        AND (p_min_capacity IS NULL OR V.CAPACITY >= p_min_capacity)
+        AND (p_service_level IS NULL OR TM.SERVICE_LEVEL = p_service_level)
+        AND (p_capacity IS NULL OR V.CAPACITY = p_capacity)
+        AND (p_plate_number IS NULL OR V.PLATE_NUMBER LIKE CONCAT('%', p_plate_number, '%'))
         
     GROUP BY
         V.VEHICLE_ID 
@@ -143,7 +155,29 @@ BEGIN
         CASE WHEN p_sort_option = 'CAPACITY_DESC' THEN V.CAPACITY END DESC,
         CASE WHEN p_sort_option = 'CAPACITY_ASC' THEN V.CAPACITY END ASC,
         CASE WHEN p_sort_option = 'MAKE' THEN V.MAKE END ASC,
-        V.VEHICLE_ID ASC;
+        V.VEHICLE_ID ASC
+    LIMIT p_limit OFFSET p_offset;
+END //
+
+
+-- Procedure: Đếm tổng số Vehicle của Driver theo bộ lọc
+CREATE PROCEDURE COUNT_DRIVER_VEHICLES(
+    IN p_driver_id INT,             -- Required: ID của tài xế
+    IN p_service_level VARCHAR(20), -- Optional: 'Standard'/ 'Saver'/ 'Electric' (NULL: tất cả)
+    IN p_capacity INT,              -- Optional: Sức chứa chính xác (2/5/7, NULL: tất cả)
+    IN p_plate_number VARCHAR(20)   -- Optional: Biển số xe (NULL: tất cả)
+)
+BEGIN
+    SELECT COUNT(DISTINCT V.VEHICLE_ID) AS total_count
+    FROM VEHICLE V
+    JOIN VEHICLE_CATEGORIZATION VC ON V.VEHICLE_ID = VC.VEHICLE_ID
+    JOIN TRANSPORT_MODE TM ON VC.MODE_ID = TM.MODE_ID
+    
+    WHERE 
+        V.REGISTRANT_ID = p_driver_id
+        AND (p_service_level IS NULL OR TM.SERVICE_LEVEL = p_service_level)
+        AND (p_capacity IS NULL OR V.CAPACITY = p_capacity)
+        AND (p_plate_number IS NULL OR V.PLATE_NUMBER LIKE CONCAT('%', p_plate_number, '%'));
 END //
 
 
@@ -169,7 +203,6 @@ END //
 --     ORDER BY Month ASC;
 -- END //
 
-DELIMITER //
 
 CREATE PROCEDURE GET_PASSENGER_MONTHLY_REPORT(
     IN p_passenger_id INT,
@@ -214,7 +247,6 @@ BEGIN
         Reporting_Month DESC;
 END //
 
-DELIMITER ;
 
 -- Procedure 3: Passenger Trip History
 -- A complex user-facing query that retrieves a detailed, paginated history of a passenger's trips,
